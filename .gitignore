@@ -1,0 +1,5 @@
+# Ignore all contents of the ManifestDrop directory
+ManifestDrop/*
+
+# Keep the ManifestDrop directory itself
+!ManifestDrop/
