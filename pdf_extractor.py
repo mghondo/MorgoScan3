@@ -2,6 +2,7 @@ import pdfplumber
 import re
 import os
 
+
 def extract_data_from_pdf(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         text = ""
@@ -16,15 +17,18 @@ def extract_data_from_pdf(pdf_path):
     drivers = re.findall(r'Name of Person Transporting\s*(.*?)\n', text)
     drivers_str = " / ".join(drivers) if drivers else "Not found"
 
-    # Extract Package IDs, M Numbers, and Names
+    # Extract Package IDs, M Numbers, Names, and Details
     items = re.findall(r'(\d+)\.\s*Package\s*\|\s*Shipped(.*?)(?=\d+\.\s*Package\s*\|\s*Shipped|\Z)', text, re.DOTALL)
 
     extracted_items = []
     for item_num, item_text in items:
         package_id_match = re.search(r'(\dA\d+)', item_text)
         m_number_match = re.search(r'(M\d{11}):\s*(.*?)(?:\s*\(|$)', item_text, re.DOTALL)
+        details_match = re.search(r'(?:Brand|Wet|Qty).*', item_text, re.IGNORECASE)
 
         package_id = package_id_match.group(1) if package_id_match else "Not found"
+        details = details_match.group(0) if details_match else "Not found"
+
         if m_number_match:
             m_number = m_number_match.group(1)
             name_details = m_number_match.group(2).strip()
@@ -32,17 +36,20 @@ def extract_data_from_pdf(pdf_path):
                 "item_number": item_num,
                 "package_id": package_id,
                 "m_number": m_number,
-                "name": name_details
+                "name": name_details,
+                "details": details
             })
         else:
             extracted_items.append({
                 "item_number": item_num,
                 "package_id": package_id,
                 "m_number": "Not found",
-                "name": "Not found"
+                "name": "Not found",
+                "details": details
             })
 
     return company, drivers_str, extracted_items
+
 
 def process_pdfs_in_directory(directory):
     for filename in os.listdir(directory):
@@ -60,9 +67,11 @@ def process_pdfs_in_directory(directory):
                 print(f"Package ID: {item['package_id']}")
                 print(f"M Number: {item['m_number']}")
                 print(f"Name: {item['name']}")
+                print(f"Details: {item['details']}")
 
             print("\n" + "=" * 50 + "\n")
 
+
 # Usage
 manifest_directory = "ManifestDrop"
-process_pdfs_in_directory(manifest_directory)git init
+process_pdfs_in_directory(manifest_directory)
