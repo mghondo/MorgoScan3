@@ -29,14 +29,28 @@ def extract_data_from_pdf(pdf_path):
         package_id = package_id_match.group(1) if package_id_match else "Not found"
         details = details_match.group(0) if details_match else "Not found"
 
+        # Extract Name from Product Details
+        name = "Not found"
+        if details.startswith("Brand:"):
+            parts = details.split('-')
+            if len(parts) >= 4:
+                name = parts[-2].strip()
+            elif len(parts) == 3:
+                name = parts[-1].split('|')[0].strip()
+        elif details.startswith("Brand"):
+            parts = details.split('-')
+            if len(parts) >= 3:
+                name = parts[-2].strip()
+
         if m_number_match:
             m_number = m_number_match.group(1)
-            name_details = m_number_match.group(2).strip()
+            mnumber_cell = m_number_match.group(2).strip()
             extracted_items.append({
                 "item_number": item_num,
                 "package_id": package_id,
                 "m_number": m_number,
-                "name": name_details,
+                "MNumberCell": mnumber_cell,
+                "Name": name,  # Add the extracted Name
                 "details": details
             })
         else:
@@ -44,7 +58,8 @@ def extract_data_from_pdf(pdf_path):
                 "item_number": item_num,
                 "package_id": package_id,
                 "m_number": "Not found",
-                "name": "Not found",
+                "MNumberCell": "Not found",
+                "Name": name,  # Add the extracted Name
                 "details": details
             })
 
@@ -66,8 +81,9 @@ def process_pdfs_in_directory(directory):
                 print(f"\nItem {item['item_number']}:")
                 print(f"Package ID: {item['package_id']}")
                 print(f"M Number: {item['m_number']}")
-                print(f"Name: {item['name']}")
-                print(f"Details: {item['details']}")
+                print(f"M Number Cell: {item['MNumberCell']}")
+                print(f"Name: {item['Name']}")  # Print the extracted Name
+                print(f"Product Details: {item['details']}")
 
             print("\n" + "=" * 50 + "\n")
 
